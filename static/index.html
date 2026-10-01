@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agenda de contatos</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="app-header">
+    <a class="brand" href="/" aria-label="Agenda de contatos, início">
+      <span class="brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="4" stroke="currentColor" stroke-width="1.6"/><path d="M8 3v4m8-4v4M4 10h16m-11 6 2 2 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span>Agenda de contatos<small>Uma conversa, um horário. Tudo organizado.</small></span>
+    </a>
+    <span class="local-label"><span></span> Salvo neste computador</span>
+  </header>
+  <nav class="navigation" aria-label="Navegação principal">
+    <div class="nav-inner">
+      <button class="nav-button active" data-view="people" aria-current="page">Pessoas <span id="people-count" class="nav-count">0</span></button>
+      <button class="nav-button" data-view="agenda">Agenda</button>
+      <button class="nav-button" data-view="calls">Ligações <span id="calls-count" class="nav-count">0</span></button>
+      <button class="nav-button" data-view="settings">Configurações</button>
+    </div>
+  </nav>
+  <main>
+    <div id="connection-error" class="error-banner" hidden>Não foi possível acessar a agenda. Confira se a janela do programa está aberta. <button id="reconnect">Tentar novamente</button></div>
+    <section id="view-people" class="view">
+      <div class="page-heading">
+        <div><p class="eyebrow">SEU DIA, MAIS SIMPLES</p><h1>Pessoas</h1><p>Prepare a mensagem. Combine o horário. Pronto.</p></div>
+        <div class="heading-actions"><button id="import-open" class="button secondary">Importar planilha</button><button id="person-new" class="button primary"><span aria-hidden="true">＋</span> Adicionar pessoa</button></div>
+      </div>
+      <button id="overdue-banner" class="overdue-banner" hidden><span class="overdue-icon" aria-hidden="true">↗</span><span><strong id="overdue-title"></strong><small id="overdue-description"></small></span><span class="overdue-cta">Ver sem resposta →</span></button>
+      <div class="table-panel">
+        <div class="table-toolbar">
+          <label class="search-label"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.7"/><path d="m16 16 4 4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg><input id="search" type="search" placeholder="Pesquisar nome ou telefone" aria-label="Pesquisar nome ou telefone"></label>
+          <label class="filter-label">Mostrar <select id="status-filter"><option value="all">Todas as pessoas</option><option value="overdue">Sem resposta</option><option value="nao_contatado">Não contatado</option><option value="aguardando">Aguardando resposta</option><option value="agendado">Agendado</option><option value="ligar">Ligar</option><option value="finalizado">Finalizado</option></select></label>
+        </div>
+        <div class="table-scroll"><table class="people-table"><thead><tr><th>Nome</th><th>Telefone</th><th>Status</th><th>Último contato</th><th>Data sugerida</th><th>Data agendada</th><th>Observação</th><th><span class="sr-only">Ações</span></th></tr></thead><tbody id="people-body"></tbody></table></div>
+        <div id="people-empty" class="empty-state" hidden><span class="empty-symbol" aria-hidden="true">☷</span><h2>Sua lista começa aqui</h2><p>Adicione uma pessoa ou importe sua planilha de contatos.</p><button id="empty-person-new" class="button primary">Adicionar primeira pessoa</button></div>
+        <div id="people-no-results" class="empty-state" hidden><h2>Nenhuma pessoa por aqui</h2><p>Tente outro nome, telefone ou filtro.</p><button id="clear-filters" class="button secondary">Limpar filtros</button></div>
+        <div class="table-footer"><span id="table-count">Carregando sua lista…</span><span>Clique em uma pessoa para preparar o contato.</span></div>
+      </div>
+    </section>
+    <section id="view-agenda" class="view" hidden>
+      <div class="page-heading"><div><p class="eyebrow">UM LUGAR PARA CADA ATENDIMENTO</p><h1>Agenda</h1><p>Cadastre os horários que você pode oferecer.</p></div><button id="slots-open" class="button primary">＋ Adicionar horários</button></div>
+      <div class="agenda-toolbar"><label>Data <input id="agenda-date" type="date"></label><button id="agenda-all" class="button text-button">Todas as datas</button><label class="checkbox-label"><input id="agenda-past" type="checkbox"> Mostrar horários passados</label><span class="legend"><i class="available-dot"></i> Disponível <i class="reserved-dot"></i> Reservado</span></div>
+      <div id="agenda-content" class="agenda-grid"></div>
+    </section>
+    <section id="view-calls" class="view" hidden>
+      <div class="page-heading"><div><p class="eyebrow">A PRÓXIMA CONVERSA</p><h1>Ligações</h1><p>Quem precisa de um contato por telefone.</p></div></div>
+      <div class="table-panel"><div class="table-scroll"><table><thead><tr><th>Nome</th><th>Telefone</th><th>Último contato</th><th>Observação</th><th>Ações</th></tr></thead><tbody id="calls-body"></tbody></table></div><div id="calls-empty" class="empty-state" hidden><span class="empty-symbol" aria-hidden="true">✓</span><h2>Nenhuma ligação na fila</h2><p>Use “Marcar para ligar” no contato de uma pessoa.</p></div></div>
+    </section>
+    <section id="view-settings" class="view" hidden>
+      <div class="page-heading"><div><p class="eyebrow">DO SEU JEITO</p><h1>Configurações</h1><p>Ajustes pequenos para o seu dia a dia.</p></div></div>
+      <form id="settings-form" class="settings-panel">
+        <div class="setting-row"><div><h2>Quando destacar quem não respondeu?</h2><p>A contagem começa no último contato registrado.</p></div><label class="days-field">Após <input name="wait_days" id="wait-days" type="number" min="1" max="30" required> dias</label></div>
+        <div class="setting-messages"><h2>Suas mensagens prontas</h2><p>Use <code>{{nome}}</code>, <code>{{data}}</code> e <code>{{horario}}</code>. A agenda preenche por você.</p>
+          <label>Primeiro contato<textarea name="first" id="template-first" rows="7" maxlength="4000" required></textarea></label>
+          <label>Outro horário<textarea name="alternative" id="template-alternative" rows="5" maxlength="4000" required></textarea></label>
+          <label>Confirmação<textarea name="confirmation" id="template-confirmation" rows="3" maxlength="4000" required></textarea></label>
+        </div>
+        <div class="settings-footer"><span>As alterações ficam salvas neste computador.</span><button class="button primary" type="submit">Salvar configurações</button></div>
+      </form>
+    </section>
+    <footer class="app-footer">Agenda pessoal <span>·</span> Seus contatos ficam neste computador. O WhatsApp abre quando você escolher.</footer>
+  </main>
+  <dialog id="person-dialog" class="person-drawer" aria-labelledby="person-detail-title"><div id="person-detail"></div></dialog>
+  <dialog id="edit-dialog" class="modal" aria-labelledby="edit-title">
+    <div class="dialog-heading"><h2 id="edit-title">Adicionar pessoa</h2><button class="close-button" data-close="edit-dialog" aria-label="Fechar">×</button></div>
+    <form id="person-form"><input name="id" type="hidden"><label>Nome<input name="name" autocomplete="name" maxlength="180" required></label><label>Telefone<input name="phone" autocomplete="tel" type="tel" maxlength="50" placeholder="(11) 99999-9999" required><small>Inclua o DDD. Para outro país, use +código do país.</small></label><label id="edit-status-label">Status<select name="status"></select></label><label>Observação<textarea name="notes" rows="3" maxlength="3000" placeholder="Algo útil para o próximo contato"></textarea></label><p id="person-form-error" class="form-error" role="alert" hidden></p><div class="dialog-actions"><button type="button" class="button secondary" data-close="edit-dialog">Cancelar</button><button type="submit" class="button primary">Salvar pessoa</button></div></form>
+  </dialog>
+  <dialog id="slots-dialog" class="modal" aria-labelledby="slots-title"><div class="dialog-heading"><h2 id="slots-title">Adicionar horários</h2><button class="close-button" data-close="slots-dialog" aria-label="Fechar">×</button></div><form id="slots-form"><label>Data<input name="date" type="date" required></label><label>Horários disponíveis<textarea name="times" rows="6" required placeholder="08:00&#10;08:30&#10;09:00&#10;09:30"></textarea><small>Um horário por linha, no formato 08:30. Horários repetidos serão ignorados.</small></label><p id="slots-form-error" class="form-error" role="alert" hidden></p><div class="dialog-actions"><button class="button secondary" type="button" data-close="slots-dialog">Cancelar</button><button class="button primary" type="submit">Salvar horários</button></div></form></dialog>
+  <dialog id="import-dialog" class="modal import-modal" aria-labelledby="import-title"><div class="dialog-heading"><h2 id="import-title">Importar pessoas</h2><button class="close-button" data-close="import-dialog" aria-label="Fechar">×</button></div><p class="muted">Use as colunas <strong>Nome</strong> e <strong>Telefone</strong>. <strong>Observação</strong> é opcional. Em XLSX, será lida a primeira aba.</p><p><a href="/modelo.csv" download="modelo-contatos.csv" class="inline-link">Baixar modelo CSV</a></p><label class="file-label">Escolher planilha<input id="import-file" type="file" accept=".csv,.xlsx"><small>CSV ou XLSX · até 8 MB · até 10.000 linhas</small></label><p id="import-error" class="form-error" role="alert" hidden></p><div id="import-preview"></div><div class="dialog-actions"><button class="button secondary" data-close="import-dialog">Cancelar</button><button id="import-confirm" class="button primary" disabled>Importar pessoas</button></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>
